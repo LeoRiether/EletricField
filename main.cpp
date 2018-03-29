@@ -21,6 +21,7 @@ float dist(const Vector& a, const Vector& b) {
 	return sqrt(dx*dx + dy*dy); 
 }
 
+// Distance between two vectors, but with different arguments
 float ndist(const int& ax, const int& ay, const int& bx, const int& by) {
 	int dx = ax - bx;
 	int dy = ay - by;
@@ -28,10 +29,12 @@ float ndist(const int& ax, const int& ay, const int& bx, const int& by) {
 }
 
 // Get output color
+// aka which color in the color wheel
 int get_col(int j, int i) {
-	float h = atan2(i, j) * (180.0f / M_PI);
-	float v = tanh(ndist(j, i, 0, 0)/20.0f);
+	float h = atan2(i, j) * (180.0f / M_PI); // Angle is hue
+	float v = tanh(ndist(j, i, 0, 0)/20.0f); // tanh(Distance/20) is value 
 	
+	// Converts HSV to RGB
 	int r, g, b;
 	hsv_to_rgb(h, 0.9f, v, &r, &g, &b);
 	return makecol(r, g, b);
@@ -54,16 +57,19 @@ Vector fn(int j, int i) {
 	
 	float d, theta, val;
 	
+	// Field for particle A
 	d = dist(a.pos, p);
 	theta = atan2(p.y-a.pos.y, p.x-a.pos.x);
 	val = a.q / (d*d);  
 	Vector field_a(val * cos(theta), val * sin(theta));
 	
+	// Field for particle B
 	d = dist(b.pos, p);
 	theta = atan2(p.y-b.pos.y, p.x-b.pos.x);
 	val = b.q / (d*d);  
 	Vector field_b(val * cos(theta), val * sin(theta));
-	
+
+	// Returns the sum of all fields	
 	return field_a + field_b;
 }
 
@@ -83,6 +89,7 @@ int main()
 {
     BITMAP *buffer = NULL;
 
+	// Initializing stuff
     allegro_init();
     set_color_depth(32);
     install_keyboard();
