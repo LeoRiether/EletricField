@@ -15,6 +15,9 @@
 #include "vector.h"
 #endif
 
+// Nice naming, me
+#include <vector>
+
 #ifndef PARTICLE_H
 #define PARTICLE_H
 #include "particle.h"
@@ -46,36 +49,20 @@ int get_col(int j, int i) {
 	return makecol(r, g, b);
 }
 
-// Linked list for all particles
-// because why not
-typedef struct PNode {
-	PNode* next;
-	Particle* self;	
-} PNode;
-
 // Declaring here, but initializing real values in main()
 // (because the position is tied to SCREEN_W and SCREEN_H, 
 //  which are not initialized here)
-//Particle a, b, c;
-PNode* pnodeHead;
+std::vector<Particle> plist;
 
 // Eletric field function
 Vector fn(int j, int i, float& d, float& theta, float& val) {
 	Vector p = Vector(j, i);
-//	return p;
 
-	Vector r;
+	Vector r, a;
 
-	PNode* node;
-	node = pnodeHead;
-	while (true) {
-		Vector a = node->self->getFieldAt(p, d, theta, val);
+	for(std::vector<Particle>::iterator part = plist.begin(); part != plist.end(); part++) {
+		a = (*part).getFieldAt(p, d, theta, val);
 		r = r + a;
-		if (node->next == NULL) {
-			break;
-		} else {
-			node = node->next;
-		}
 	}
 
 	// Returns the sum of all fields	
@@ -125,28 +112,24 @@ int main()
     set_close_button_callback(on_close_callback);
     
     // Initializing particles
-    Particle a(Vector(SMX-100.0f, SMY), 5e4);
-    Particle b(Vector(SMX+100.0f, SMY), 5e4);
-    Particle c(Vector(SMX, SMY-75.0f), -5e4);
+    plist.push_back(Particle(Vector(SMX-100.0f, SMY), 10e4));
+    plist.push_back(Particle(Vector(SMX+100.0f, SMY), 5e4));
+    plist.push_back(Particle(Vector(SMX, SMY-75.0f), -5e4));
     
-    // Initializing nodes
-    PNode cnode; cnode.self = &c; cnode.next = NULL;
-    PNode bnode; bnode.self = &b; bnode.next = &cnode;
-    PNode anode; anode.self = &a; anode.next = &bnode;
-    pnodeHead = &anode;
+    Particle* a = &plist[0];
+    Particle* b = &plist[1];
     
     bool needs_draw = true;
-    
 
     while(!needs_exit)
     {
     	if(key[KEY_PLUS_PAD]) {
-			a.pos.x += 5;
-			b.pos.x -= 5;
+			a->pos.x += 5;
+			b->pos.x -= 5;
 			needs_draw = true;
 		} else if(key[KEY_MINUS_PAD]) {
-			a.pos.x -= 5;
-			b.pos.x += 5;
+			a->pos.x -= 5;
+			b->pos.x += 5;
 			needs_draw = true;
 		} else if(key[KEY_L]) {  // Toggles lines 
 			lines = !lines;
