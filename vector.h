@@ -8,9 +8,11 @@ public:
 	float x;
 	float y;
 	
+	Vector();
 	Vector(float, float);
 	
 	Vector operator+(Vector&);
 	
 	float abs();
 };
+

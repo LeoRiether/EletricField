@@ -3,6 +3,11 @@
 #include "vector.h"
 #endif
 
+Vector::Vector() {
+	this->x = 0;
+	this->y = 0;
+}
+
 Vector::Vector(float x, float y) {
 	this->x = x;
 	this->y = y;
@@ -13,6 +18,7 @@ Vector Vector::operator+(Vector& a) {
 }
 
 float Vector::abs() {
-	// Who cares about DRY, amirite?
+	// Couldn't use ndist for some reason
 	return sqrt(this->x*this->x + this->y*this->y);
 }
+

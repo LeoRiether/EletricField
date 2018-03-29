@@ -5,12 +5,26 @@
 #include <cmath>
 #endif
 
+#ifndef UTIL_H
+#define UTIL_H
+#include "util.h"
+#endif
+
+#ifndef VECTOR_H
+#define VECTOR_H
 #include "vector.h"
+#endif
+
+#ifndef PARTICLE_H
+#define PARTICLE_H
+#include "particle.h"
+#endif
 
 #define SMX SCREEN_W / 2.0f
 #define SMY SCREEN_H / 2.0f
 
 #define LINE_SPACE 20
+#define LINE_COLOR 0xa9a9a9
 
 // Closing logic
 bool needs_exit = false;
@@ -19,20 +33,6 @@ void on_close_callback() {
 } 
 
 
-
-// Distance between two vectors
-float dist(const Vector& a, const Vector& b) {
-	float dx = a.x - b.x;
-	float dy = a.y - b.y;
-	return sqrt(dx*dx + dy*dy); 
-}
-
-// Distance between two vectors, but with different arguments
-float ndist(const int& ax, const int& ay, const int& bx, const int& by) {
-	int dx = ax - bx;
-	int dy = ay - by;
-	return sqrt(dx*dx + dy*dy); 
-}
 
 // Get output color
 // aka which color in the color wheel
@@ -46,55 +46,65 @@ int get_col(int j, int i) {
 	return makecol(r, g, b);
 }
 
-// Struct for the particles
-typedef struct {
-	Vector pos;
-	float q;
-} Particle;
+// Linked list for all particles
+// because why not
+typedef struct PNode {
+	PNode* next;
+	Particle* self;	
+} PNode;
 
 // Declaring here, but initializing real values in main()
-Particle a { Vector(0,0), 0 };
-Particle b { Vector(0,0), 0 };
+// (because the position is tied to SCREEN_W and SCREEN_H, 
+//  which are not initialized here)
+//Particle a, b, c;
+PNode* pnodeHead;
 
 // Eletric field function
-Vector fn(int j, int i) {
+Vector fn(int j, int i, float& d, float& theta, float& val) {
 	Vector p = Vector(j, i);
 //	return p;
-	
-	float d, theta, val;
-	
-	// Field for particle A
-	d = dist(a.pos, p);
-	theta = atan2(p.y-a.pos.y, p.x-a.pos.x);
-	val = a.q / (d*d);  
-	Vector field_a(val * cos(theta), val * sin(theta));
-	
-	// Field for particle B
-	d = dist(b.pos, p);
-	theta = atan2(p.y-b.pos.y, p.x-b.pos.x);
-	val = b.q / (d*d);  
-	Vector field_b(val * cos(theta), val * sin(theta));
+
+	Vector r;
+
+	PNode* node;
+	node = pnodeHead;
+	while (true) {
+		Vector a = node->self->getFieldAt(p, d, theta, val);
+		r = r + a;
+		if (node->next == NULL) {
+			break;
+		} else {
+			node = node->next;
+		}
+	}
 
 	// Returns the sum of all fields	
-	return field_a + field_b;
+	return r;
 }
 
 // Draw the function
 bool lines = false;
 void draw(BITMAP* buffer) {
 	Vector out(0,0);
+	float d, theta, val;
 	for(int i = 0; i < SCREEN_H; i++) {
 		for(int j = 0; j < SCREEN_W; j++) {
-			out = fn(j, i);
+			out = fn(j, i, d, theta, val);
 			putpixel(buffer, j, i, get_col(out.x, out.y));
 		}
 	}
+	
+	float i1, j1;
 	if (lines) {
 		for(int i = 0; i < SCREEN_H; i += LINE_SPACE) {
 			for(int j = 0; j < SCREEN_W; j += LINE_SPACE) {
-				out = fn(j, i);
+				out = fn(j, i, d, theta, val);
 				float c = (LINE_SPACE/2.0f) / out.abs();
-				fastline(buffer, j, i, j+out.x*c, i+out.y*c, 0xa9a9a9);
+				i1 = i+out.y*c;
+				j1 = j+out.x*c;
+				fastline(buffer, j, i, j1, i1, LINE_COLOR);
+				rectfill(buffer, j1-.75, i1-.75, j1+.75, i1+.75, LINE_COLOR);
+				//circlefill(buffer, j1, i1, 1, 0xa9a9a9);
 			}
 		}
 	}
@@ -114,10 +124,16 @@ int main()
     
     set_close_button_callback(on_close_callback);
     
-    a.pos = Vector(SMX-100.0f, SMY-00.0f);
-    a.q = 5e4;
-    b.pos = Vector(SMX+100.0f, SMY);
-    b.q = -5e4;
+    // Initializing particles
+    Particle a(Vector(SMX-100.0f, SMY), 5e4);
+    Particle b(Vector(SMX+100.0f, SMY), 5e4);
+    Particle c(Vector(SMX, SMY-75.0f), -5e4);
+    
+    // Initializing nodes
+    PNode cnode; cnode.self = &c; cnode.next = NULL;
+    PNode bnode; bnode.self = &b; bnode.next = &cnode;
+    PNode anode; anode.self = &a; anode.next = &bnode;
+    pnodeHead = &anode;
     
     bool needs_draw = true;
     
