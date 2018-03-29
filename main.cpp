@@ -1,10 +1,16 @@
 #include <allegro.h>
+
+#ifndef CMATH_H
+#define CMATH_H
 #include <cmath>
+#endif
 
 #include "vector.h"
 
 #define SMX SCREEN_W / 2.0f
 #define SMY SCREEN_H / 2.0f
+
+#define LINE_SPACE 20
 
 // Closing logic
 bool needs_exit = false;
@@ -74,12 +80,22 @@ Vector fn(int j, int i) {
 }
 
 // Draw the function
+bool lines = false;
 void draw(BITMAP* buffer) {
 	Vector out(0,0);
 	for(int i = 0; i < SCREEN_H; i++) {
 		for(int j = 0; j < SCREEN_W; j++) {
 			out = fn(j, i);
 			putpixel(buffer, j, i, get_col(out.x, out.y));
+		}
+	}
+	if (lines) {
+		for(int i = 0; i < SCREEN_H; i += LINE_SPACE) {
+			for(int j = 0; j < SCREEN_W; j += LINE_SPACE) {
+				out = fn(j, i);
+				float c = (LINE_SPACE/2.0f) / out.abs();
+				fastline(buffer, j, i, j+out.x*c, i+out.y*c, 0xa9a9a9);
+			}
 		}
 	}
 }
@@ -98,24 +114,17 @@ int main()
     
     set_close_button_callback(on_close_callback);
     
-    a.pos = Vector(SMX-100.0f, SMY-100.0f);
+    a.pos = Vector(SMX-100.0f, SMY-00.0f);
     a.q = 5e4;
     b.pos = Vector(SMX+100.0f, SMY);
-    b.q = 5e4;
+    b.q = -5e4;
     
     bool needs_draw = true;
+    
 
     while(!needs_exit)
     {
-
-        if (needs_draw) {
-			clear(buffer);
-			draw(buffer);
-	        blit(buffer, screen, 0, 0, 0, 0, SCREEN_W, SCREEN_H);	
-			needs_draw = false;	
-		}
-		
-		if(key[KEY_PLUS_PAD]) {
+    	if(key[KEY_PLUS_PAD]) {
 			a.pos.x += 5;
 			b.pos.x -= 5;
 			needs_draw = true;
@@ -123,6 +132,16 @@ int main()
 			a.pos.x -= 5;
 			b.pos.x += 5;
 			needs_draw = true;
+		} else if(key[KEY_L]) {  // Toggles lines 
+			lines = !lines;
+			needs_draw = true;
+		}
+    	
+        if (needs_draw) {
+			clear(buffer);
+			draw(buffer);
+	        blit(buffer, screen, 0, 0, 0, 0, SCREEN_W, SCREEN_H);	
+			needs_draw = false;	
 		}
 
         rest(10);

@@ -11,3 +11,8 @@ Vector::Vector(float x, float y) {
 Vector Vector::operator+(Vector& a) {
 	return Vector(this->x + a.x, this->y + a.y);
 }
+
+float Vector::abs() {
+	// Who cares about DRY, amirite?
+	return sqrt(this->x*this->x + this->y*this->y);
+}
