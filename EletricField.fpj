@@ -20,7 +20,8 @@
 		<File Name="vector.h"/>
 		<File Name="particle.cpp"/>
 		<File Name="particle.h"/>
-		<File Name="util.h"/>
+		<File Name="util1.h"/>
+		<File Name="util.cpp"/>
 	</Files>
 	<AppIcon>
 		0000010001003030000001002000A82500001600000028000000300000006000

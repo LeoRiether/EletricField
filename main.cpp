@@ -57,10 +57,14 @@ std::vector<Particle> plist;
 // Eletric field function
 Vector fn(int j, int i, float& d, float& theta, float& val) {
 	Vector p = Vector(j, i);
+	//p.x -= 250;
+	//p.y -= 250;
+	//return p;
 
 	Vector r, a;
 
-	for(std::vector<Particle>::iterator part = plist.begin(); part != plist.end(); part++) {
+	std::vector<Particle>::iterator part = plist.begin();
+	for( ; part != plist.end(); part++) {
 		a = (*part).getFieldAt(p, d, theta, val);
 		r = r + a;
 	}
@@ -106,6 +110,7 @@ int main()
     allegro_init();
     set_color_depth(32);
     install_keyboard();
+    install_mouse();
     set_gfx_mode(GFX_AUTODETECT_WINDOWED, 500, 500, 0, 0);
     buffer = create_bitmap(SCREEN_W, SCREEN_H);
     
@@ -113,16 +118,19 @@ int main()
     
     // Initializing particles
     plist.push_back(Particle(Vector(SMX-100.0f, SMY), 10e4));
-    plist.push_back(Particle(Vector(SMX+100.0f, SMY), 5e4));
-    plist.push_back(Particle(Vector(SMX, SMY-75.0f), -5e4));
+    plist.push_back(Particle(Vector(SMX+100.0f, SMY), -10e4));
+    //plist.push_back(Particle(Vector(SMX, SMY-75.0f), -5e4));
+    //plist.push_back(Particle(Vector(SMX, SMY+150.0f), 10e4));
     
     Particle* a = &plist[0];
     Particle* b = &plist[1];
     
+    show_os_cursor(1);
+    
     bool needs_draw = true;
-
     while(!needs_exit)
     {
+    	
     	if(key[KEY_PLUS_PAD]) {
 			a->pos.x += 5;
 			b->pos.x -= 5;
@@ -131,8 +139,11 @@ int main()
 			a->pos.x -= 5;
 			b->pos.x += 5;
 			needs_draw = true;
-		} else if(key[KEY_L]) {  // Toggles lines 
+		} else if(key[KEY_V]) {  // Toggles vectors 
 			lines = !lines;
+			needs_draw = true;
+		} else if(key[KEY_L]) {  // Limpa a lista de partículas
+			plist.clear();
 			needs_draw = true;
 		}
     	
@@ -141,6 +152,14 @@ int main()
 			draw(buffer);
 	        blit(buffer, screen, 0, 0, 0, 0, SCREEN_W, SCREEN_H);	
 			needs_draw = false;	
+		}
+		
+		if (mouse_b & 1) {
+			plist.push_back(Particle(Vector(mouse_x, mouse_y), 5e4));
+			needs_draw = true;
+		} else if (mouse_b & 2) {
+			plist.push_back(Particle(Vector(mouse_x, mouse_y), -5e4));
+			needs_draw = true;
 		}
 
         rest(10);
